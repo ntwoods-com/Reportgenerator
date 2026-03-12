@@ -1,12 +1,12 @@
 {
-    email {$CADDY_EMAIL}
+    email {$ACME_EMAIL}
 
     servers {
         trusted_proxies static private_ranges
     }
 }
 
-{$SITE_ADDRESS:localhost} {
+{$DOMAIN_NAME:localhost} {
     encode zstd gzip
 
     @health path /healthz
