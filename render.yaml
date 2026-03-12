@@ -1,0 +1,80 @@
+services:
+  - type: web
+    name: sale-order-backend
+    runtime: python
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /api/v1/health
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: gunicorn --config gunicorn.conf.py wsgi:application
+
+    # Optional fallback local storage (useful for temporary files/logs).
+    # For production data, prefer external DB + Supabase storage.
+    disk:
+      name: sale-order-data
+      mountPath: /var/data
+      sizeGB: 5
+
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: REQUIRE_EXTERNAL_DB
+        value: "1"
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+      - key: ENABLE_FILE_LOGGING
+        value: "0"
+      - key: READINESS_CHECK_DB
+        value: "1"
+
+      # Gunicorn tuning (10k/day baseline)
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: GUNICORN_THREADS
+        value: "4"
+      - key: GUNICORN_TIMEOUT
+        value: "120"
+      - key: GUNICORN_MAX_REQUESTS
+        value: "1000"
+      - key: GUNICORN_MAX_REQUESTS_JITTER
+        value: "100"
+
+      # DB pool tuning
+      - key: DB_POOL_SIZE
+        value: "20"
+      - key: DB_MAX_OVERFLOW
+        value: "40"
+      - key: DB_POOL_TIMEOUT
+        value: "30"
+      - key: DB_POOL_RECYCLE
+        value: "1800"
+      - key: DB_SSLMODE
+        value: require
+
+      # Local fallback paths (used only when not using cloud storage)
+      - key: DATABASE_FILE
+        value: /var/data/order_counter.db
+      - key: UPLOAD_FOLDER
+        value: /var/data/uploads
+      - key: REPORT_FOLDER
+        value: /var/data/reports
+
+      # Required secrets/configuration (set in Render dashboard)
+      - key: SECRET_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: USER1
+        sync: false
+      - key: ADMIN_USERS
+        sync: false
